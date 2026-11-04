@@ -114,9 +114,11 @@ machinery beyond `inputs` on the NixOS side):
 # configuration.nix
 {
   imports = [ ];
-  boot.kernelPackages = (import /path/to/t14s_linux_kernel/flake.nix {
-    inputs.nixpkgs.url = "github:NixOS/nixpkgs/master";   # match the flake's pin
-  }).packages."aarch64-linux".kernel;
+  boot.kernelPackages = t14sKernel.linuxPackages;
+  # where, in the host flake:
+  #   inputs.t14s.url = "path:/path/to/t14s_linux_kernel";
+  # `.linuxPackages` is the top-level output of this flake: the full
+  # `pkgs.linuxPackagesFor (linuxManualConfig …)` attrset.
 }
 ```
 

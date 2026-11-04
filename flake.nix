@@ -104,8 +104,11 @@
   {
     packages.${system} =
       {
+        # The kernel image derivation — what `nix build .#kernel` builds
+        # (and what `.default` points at).
         inherit (linuxKernel) kernel;
         default = linuxKernel.kernel;
+
         # Raw toolchain set, for convenience / inspection.
         toolchain = pkgs.buildEnv {
           name = "t14s-kernel-toolchain";
@@ -114,5 +117,21 @@
       };
 
     devShells.${system}.default = devShell;
+
+    # The full `pkgs.linuxPackagesFor (linuxManualConfig …)` attrset:
+    # { kernel, dev, modules, systemd, ebpf-headers, <every module pkg>, … }.
+    #
+    # Exposed at the TOP level (not under `packages`) because `nix flake check`
+    # requires every `packages.*` entry to be a derivation, and this is an
+    # attrset. It is the value a NixOS configuration assigns to
+    # `boot.kernelPackages`:
+    #
+    #   boot.kernelPackages = (import /path/to/t14s_linux_kernel/flake.nix {
+    #     inputs.nixpkgs.url = "github:NixOS/nixpkgs/master";
+    #   }).linuxPackages;
+    #
+    # (packages.<sys>.kernel remains the plain kernel image, so
+    #  `nix build .#kernel` still just builds the Image + modules + dtbs.)
+    linuxPackages = linuxKernel;
   };
 }

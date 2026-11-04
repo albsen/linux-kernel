@@ -54,12 +54,17 @@ attrset. In a NixOS `configuration.nix` (on the host, with this repo's
 {
   imports = [ ];
 
-  boot.kernelPackages = (
-    (import (t14sKernel.source + "/flake.nix") {
-      inputs.nixpkgs = { url = "github:NixOS/nixpkgs/master"; };
-    })
-  ).packages.${system}.kernel;   # linuxPackagesFor attrset: { kernel, modules, dev, … }
-  # equivalently: the attrset from `packages.<sys>.kernel` of the flake
+  boot.kernelPackages = t14sKernel.linuxPackages;
+
+  # t14sKernel is this repo as a flake input, e.g. in configuration.nix /
+  # the host flake:
+  #   inputs.t14s.url = "path:…/kernel_7.3.x/t14s_linux_kernel";
+  #
+  # `.linuxPackages` is the full `pkgs.linuxPackagesFor (linuxManualConfig …)`
+  # attrset ({ kernel, dev, modules, systemd, ebpf-headers, <every module>,
+  # … }) — the exact shape `boot/kernel.nix` + `systemd-boot.nix` consume
+  # (`config.boot.kernelPackages.kernel.{name,features,config}`, module pkgs).
+  # The plain kernel *image* is still `t14sKernel.packages."aarch64-linux".kernel`.
 }
 ```
 
